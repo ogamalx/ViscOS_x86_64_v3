@@ -1,21 +1,13 @@
 [Unit]
 Description=Ensure Broadcom wl module is built and loaded
-After=systemd-modules-load.service
-Before=NetworkManager.service
-ConditionPathIsReadWrite=/usr/lib/modules
+After=local-fs.target systemd-modules-load.service
+Before=network-pre.target NetworkManager.service
+Wants=network-pre.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/bin/bash -c '\
-    set -euo pipefail; \
-    # Build the wl module for the current kernel if not already present. \
-    if ! /usr/bin/modinfo -k "$(/usr/bin/uname -r)" wl >/dev/null 2>&1; then \
-        /usr/bin/dkms autoinstall -k "$(/usr/bin/uname -r)"; \
-    fi; \
-    # Load the wl module to ensure Wi-Fi is available immediately. \
-    /usr/bin/modprobe wl \
-'
+ExecStart=/usr/bin/bash -lc 'set -euo pipefail; kver="$(uname -r)"; if ! modinfo -k "$kver" wl >/dev/null 2>&1; then dkms autoinstall -k "$kver"; fi; modprobe wl'
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,35 @@
+name: build-iso
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build ISO in Arch container
+        run: |
+          set -euo pipefail
+          IMAGE=archlinux:latest
+          sudo docker pull "$IMAGE"
+          sudo docker run --rm --privileged \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            "$IMAGE" /bin/bash -lc "set -euo pipefail
+              pacman -Syu --noconfirm --needed archiso git sudo gnupg base-devel
+              gpg --batch --pinentry-mode=loopback --passphrase '' --quick-generate-key 'CI Builder <ci@example.com>' default default never
+              KEYID=\$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')
+              export GPGKEY=\$KEYID
+              ./buildiso.sh
+            "
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cachyos-iso
+          path: out/**/*.iso
