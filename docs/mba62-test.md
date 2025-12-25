@@ -16,7 +16,7 @@
   - `sudo modinfo -k "$(uname -r)" wl`
   - `sudo lsmod | grep wl`
 - Validate DKMS cache used and hook available:
-  - `sudo grep -A3 '\\[Trigger\\]' /etc/pacman.d/hooks/95-broadcom-wl-dkms.hook`
+  - sudo grep -A3 '\[Trigger\]' /usr/share/libalpm/hooks/90-broadcom-wl-dkms.hook
   - `sudo pacman -Qi broadcom-wl-dkms dkms`
 - Network and autoload checks:
   - `sudo systemctl status NetworkManager.service`
