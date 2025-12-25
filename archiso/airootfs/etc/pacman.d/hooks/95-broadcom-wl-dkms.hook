@@ -1,0 +1,21 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux-cachyos
+Target = linux-cachyos-headers
+Target = linux-cachyos-lts
+Target = linux-cachyos-lts-headers
+Target = broadcom-wl-dkms
+
+[Action]
+Description = Rebuilding Broadcom wl module for installed kernels
+When = PostTransaction
+NeedsTargets
+Exec = /usr/bin/bash -c '\
+    set -euo pipefail; \
+    for kver in /usr/lib/modules/*; do \
+        [[ -d "$kver" ]] || continue; \
+        /usr/bin/dkms autoinstall -k "$(basename "$kver")"; \
+    done \
+'
